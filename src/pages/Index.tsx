@@ -1,29 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import Icon from '@/components/ui/icon';
-
-interface Movie {
-  id: number;
-  title: string;
-  year: number;
-  rating: number;
-  genre: string[];
-  poster: string;
-  isFavorite: boolean;
-  views: number;
-  description?: string;
-  director?: string;
-  cast?: string[];
-  duration?: number;
-  country?: string;
-  trailer?: string;
-}
+import { MovieCard, type Movie } from '@/components/MovieCard';
+import { MovieDialog } from '@/components/MovieDialog';
+import { AppHeader } from '@/components/AppHeader';
 
 const GENRES = ['Все', 'Боевик', 'Драма', 'Комедия', 'Фантастика', 'Триллер', 'Мелодрама'];
 
@@ -183,65 +166,9 @@ function Index() {
     setIsDialogOpen(true);
   };
 
-  const MovieCard = ({ movie }: { movie: Movie }) => (
-    <Card 
-      className="glass-card hover-glow group overflow-hidden cursor-pointer animate-scale-in"
-      onClick={() => openMovieDialog(movie)}
-    >
-      <CardContent className="p-0">
-        <div className="relative aspect-[2/3] bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-          <span className="text-8xl">{movie.poster}</span>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm hover:bg-background"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleFavorite(movie.id);
-            }}
-          >
-            <Icon name={movie.isFavorite ? "Heart" : "Heart"} className={movie.isFavorite ? "fill-red-500 text-red-500" : ""} size={20} />
-          </Button>
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/80 to-transparent p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="secondary" className="bg-primary/20 text-primary-foreground">
-                ⭐ {movie.rating}
-              </Badge>
-              <Badge variant="outline" className="text-xs">{movie.year}</Badge>
-            </div>
-            <h3 className="font-heading font-semibold text-lg mb-1 line-clamp-2">{movie.title}</h3>
-            <div className="flex flex-wrap gap-1">
-              {movie.genre.map(g => (
-                <Badge key={g} variant="outline" className="text-xs">{g}</Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <header className="glass-card border-b sticky top-0 z-50 backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-heading font-bold gradient-text">CineVerse</h1>
-            <Button size="icon" variant="ghost" className="relative">
-              <Icon name="User" size={24} />
-            </Button>
-          </div>
-          <div className="relative">
-            <Icon name="Search" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-            <Input
-              placeholder="Поиск фильмов..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-muted/50 border-muted"
-            />
-          </div>
-        </div>
-      </header>
+      <AppHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="container mx-auto px-4 py-6">
         <TabsList className="grid w-full grid-cols-5 mb-8 glass-card">
@@ -295,7 +222,7 @@ function Index() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {trendingMovies.map((movie, idx) => (
                 <div key={movie.id} style={{ animationDelay: `${idx * 0.1}s` }}>
-                  <MovieCard movie={movie} />
+                  <MovieCard movie={movie} onToggleFavorite={toggleFavorite} onClick={openMovieDialog} />
                 </div>
               ))}
             </div>
@@ -308,7 +235,7 @@ function Index() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {recommendedMovies.map(movie => (
-                <MovieCard key={movie.id} movie={movie} />
+                <MovieCard key={movie.id} movie={movie} onToggleFavorite={toggleFavorite} onClick={openMovieDialog} />
               ))}
             </div>
           </section>
@@ -335,7 +262,7 @@ function Index() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredMovies.map(movie => (
-              <MovieCard key={movie.id} movie={movie} />
+              <MovieCard key={movie.id} movie={movie} onToggleFavorite={toggleFavorite} onClick={openMovieDialog} />
             ))}
           </div>
         </TabsContent>
@@ -350,7 +277,7 @@ function Index() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {favoriteMovies.map(movie => (
-                <MovieCard key={movie.id} movie={movie} />
+                <MovieCard key={movie.id} movie={movie} onToggleFavorite={toggleFavorite} onClick={openMovieDialog} />
               ))}
             </div>
           )}
@@ -436,160 +363,13 @@ function Index() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="glass-card max-w-4xl max-h-[90vh] overflow-hidden p-0">
-          {selectedMovie && (
-            <ScrollArea className="h-full max-h-[90vh]">
-              <div className="relative">
-                <div className="relative h-64 bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
-                  <span className="text-9xl">{selectedMovie.poster}</span>
-                  <div className="absolute top-4 right-4">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="bg-background/80 backdrop-blur-sm hover:bg-background"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(selectedMovie.id);
-                      }}
-                    >
-                      <Icon 
-                        name="Heart" 
-                        className={selectedMovie.isFavorite ? "fill-red-500 text-red-500" : ""} 
-                        size={24} 
-                      />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="p-8">
-                  <DialogHeader className="mb-6">
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <DialogTitle className="text-4xl font-heading font-bold gradient-text">
-                        {selectedMovie.title}
-                      </DialogTitle>
-                      <Badge className="bg-primary/20 text-2xl px-4 py-2">
-                        ⭐ {selectedMovie.rating}
-                      </Badge>
-                    </div>
-                    <div className="flex flex-wrap gap-3 mb-4">
-                      <Badge variant="outline" className="text-sm">{selectedMovie.year}</Badge>
-                      {selectedMovie.duration && (
-                        <Badge variant="outline" className="text-sm">
-                          <Icon name="Clock" size={14} className="mr-1" />
-                          {selectedMovie.duration} мин
-                        </Badge>
-                      )}
-                      {selectedMovie.country && (
-                        <Badge variant="outline" className="text-sm">
-                          <Icon name="MapPin" size={14} className="mr-1" />
-                          {selectedMovie.country}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedMovie.genre.map(g => (
-                        <Badge key={g} className="bg-primary/10 text-primary-foreground">{g}</Badge>
-                      ))}
-                    </div>
-                  </DialogHeader>
-
-                  <div className="space-y-6">
-                    {selectedMovie.description && (
-                      <div>
-                        <h3 className="font-heading font-semibold text-xl mb-3 flex items-center gap-2">
-                          <Icon name="FileText" size={20} className="text-primary" />
-                          Описание
-                        </h3>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {selectedMovie.description}
-                        </p>
-                      </div>
-                    )}
-
-                    {selectedMovie.director && (
-                      <div>
-                        <h3 className="font-heading font-semibold text-xl mb-3 flex items-center gap-2">
-                          <Icon name="Clapperboard" size={20} className="text-primary" />
-                          Режиссёр
-                        </h3>
-                        <p className="text-foreground">{selectedMovie.director}</p>
-                      </div>
-                    )}
-
-                    {selectedMovie.cast && selectedMovie.cast.length > 0 && (
-                      <div>
-                        <h3 className="font-heading font-semibold text-xl mb-3 flex items-center gap-2">
-                          <Icon name="Users" size={20} className="text-primary" />
-                          В главных ролях
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedMovie.cast.map((actor, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-sm">
-                              {actor}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="pt-6 border-t border-border">
-                      <div className="flex flex-wrap gap-3">
-                        <Button 
-                          size="lg" 
-                          className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-                        >
-                          <Icon name="Play" className="mr-2" size={20} />
-                          Смотреть
-                        </Button>
-                        <Button 
-                          size="lg" 
-                          variant="outline"
-                          onClick={() => toggleFavorite(selectedMovie.id)}
-                        >
-                          <Icon 
-                            name="Heart" 
-                            className={selectedMovie.isFavorite ? "fill-red-500 text-red-500 mr-2" : "mr-2"} 
-                            size={20} 
-                          />
-                          {selectedMovie.isFavorite ? 'В избранном' : 'В избранное'}
-                        </Button>
-                        <Button size="lg" variant="outline">
-                          <Icon name="Share2" className="mr-2" size={20} />
-                          Поделиться
-                        </Button>
-                      </div>
-                    </div>
-
-                    <Card className="glass-card mt-6">
-                      <CardContent className="p-6">
-                        <h3 className="font-heading font-semibold text-lg mb-4">Рецензии зрителей</h3>
-                        <div className="space-y-4">
-                          {REVIEWS.filter(r => r.movieId === selectedMovie.id).map(review => (
-                            <div key={review.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="font-medium">{review.author}</span>
-                                <Badge variant="secondary">⭐ {review.rating}/10</Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-1">{review.date}</p>
-                              <p className="text-foreground">{review.text}</p>
-                            </div>
-                          ))}
-                          {REVIEWS.filter(r => r.movieId === selectedMovie.id).length === 0 && (
-                            <p className="text-muted-foreground text-center py-4">
-                              Пока нет рецензий на этот фильм
-                            </p>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </div>
-            </ScrollArea>
-          )}
-        </DialogContent>
-      </Dialog>
+      <MovieDialog 
+        movie={selectedMovie} 
+        isOpen={isDialogOpen} 
+        onOpenChange={setIsDialogOpen} 
+        onToggleFavorite={toggleFavorite}
+        reviews={REVIEWS}
+      />
     </div>
   );
 }
