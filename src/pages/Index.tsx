@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import Icon from '@/components/ui/icon';
 
 interface Movie {
@@ -15,19 +17,137 @@ interface Movie {
   poster: string;
   isFavorite: boolean;
   views: number;
+  description?: string;
+  director?: string;
+  cast?: string[];
+  duration?: number;
+  country?: string;
+  trailer?: string;
 }
 
 const GENRES = ['Все', 'Боевик', 'Драма', 'Комедия', 'Фантастика', 'Триллер', 'Мелодрама'];
 
 const MOCK_MOVIES: Movie[] = [
-  { id: 1, title: 'Космическая одиссея', year: 2024, rating: 8.9, genre: ['Фантастика', 'Драма'], poster: '🚀', isFavorite: true, views: 5 },
-  { id: 2, title: 'Ночной город', year: 2023, rating: 8.5, genre: ['Боевик', 'Триллер'], poster: '🌃', isFavorite: false, views: 3 },
-  { id: 3, title: 'Последний рубеж', year: 2024, rating: 9.1, genre: ['Боевик', 'Фантастика'], poster: '⚔️', isFavorite: true, views: 7 },
-  { id: 4, title: 'Тайны прошлого', year: 2023, rating: 7.8, genre: ['Драма', 'Триллер'], poster: '🔍', isFavorite: false, views: 2 },
-  { id: 5, title: 'Смешная история', year: 2024, rating: 7.2, genre: ['Комедия'], poster: '😂', isFavorite: false, views: 1 },
-  { id: 6, title: 'Сердца в огне', year: 2023, rating: 8.0, genre: ['Мелодрама', 'Драма'], poster: '💖', isFavorite: true, views: 4 },
-  { id: 7, title: 'Параллельные миры', year: 2024, rating: 8.7, genre: ['Фантастика'], poster: '🌌', isFavorite: false, views: 6 },
-  { id: 8, title: 'Охотник', year: 2023, rating: 8.3, genre: ['Боевик', 'Триллер'], poster: '🎯', isFavorite: false, views: 2 },
+  { 
+    id: 1, 
+    title: 'Космическая одиссея', 
+    year: 2024, 
+    rating: 8.9, 
+    genre: ['Фантастика', 'Драма'], 
+    poster: '🚀', 
+    isFavorite: true, 
+    views: 5,
+    description: 'Эпическое путешествие через галактику, раскрывающее тайны Вселенной и человеческой природы. Команда исследователей отправляется в путешествие длиной в жизнь.',
+    director: 'Кристофер Нолан',
+    cast: ['Мэттью МакКонахи', 'Энн Хэтэуэй', 'Джессика Честейн'],
+    duration: 169,
+    country: 'США, Великобритания'
+  },
+  { 
+    id: 2, 
+    title: 'Ночной город', 
+    year: 2023, 
+    rating: 8.5, 
+    genre: ['Боевик', 'Триллер'], 
+    poster: '🌃', 
+    isFavorite: false, 
+    views: 3,
+    description: 'В мегаполисе будущего детектив расследует серию загадочных преступлений, которые ведут его в самое сердце городских тайн.',
+    director: 'Денис Вильнёв',
+    cast: ['Райан Гослинг', 'Харрисон Форд', 'Ана де Армас'],
+    duration: 163,
+    country: 'США'
+  },
+  { 
+    id: 3, 
+    title: 'Последний рубеж', 
+    year: 2024, 
+    rating: 9.1, 
+    genre: ['Боевик', 'Фантастика'], 
+    poster: '⚔️', 
+    isFavorite: true, 
+    views: 7,
+    description: 'Последняя битва человечества за выживание против инопланетного вторжения. Группа элитных солдат должна защитить последний оплот цивилизации.',
+    director: 'Джеймс Кэмерон',
+    cast: ['Том Круз', 'Эмили Блант', 'Билл Пэкстон'],
+    duration: 113,
+    country: 'США'
+  },
+  { 
+    id: 4, 
+    title: 'Тайны прошлого', 
+    year: 2023, 
+    rating: 7.8, 
+    genre: ['Драма', 'Триллер'], 
+    poster: '🔍', 
+    isFavorite: false, 
+    views: 2,
+    description: 'Журналистка раскрывает семейные секреты, которые меняют её представление о собственной жизни и истории её семьи.',
+    director: 'Дэвид Финчер',
+    cast: ['Руни Мара', 'Дэниел Крейг', 'Кристофер Пламмер'],
+    duration: 158,
+    country: 'США, Швеция'
+  },
+  { 
+    id: 5, 
+    title: 'Смешная история', 
+    year: 2024, 
+    rating: 7.2, 
+    genre: ['Комедия'], 
+    poster: '😂', 
+    isFavorite: false, 
+    views: 1,
+    description: 'Серия комичных недоразумений превращает обычный день в незабываемое приключение для группы друзей.',
+    director: 'Джадд Апатоу',
+    cast: ['Сет Роген', 'Джеймс Франко', 'Джона Хилл'],
+    duration: 107,
+    country: 'США'
+  },
+  { 
+    id: 6, 
+    title: 'Сердца в огне', 
+    year: 2023, 
+    rating: 8.0, 
+    genre: ['Мелодрама', 'Драма'], 
+    poster: '💖', 
+    isFavorite: true, 
+    views: 4,
+    description: 'История любви, которая преодолевает все преграды и испытания судьбы. Два человека встречаются в самый неподходящий момент своей жизни.',
+    director: 'Люка Гуаданьино',
+    cast: ['Тимоти Шаламе', 'Арми Хаммер', 'Майкл Стулбарг'],
+    duration: 132,
+    country: 'Италия, Франция, США'
+  },
+  { 
+    id: 7, 
+    title: 'Параллельные миры', 
+    year: 2024, 
+    rating: 8.7, 
+    genre: ['Фантастика'], 
+    poster: '🌌', 
+    isFavorite: false, 
+    views: 6,
+    description: 'Физик открывает способ путешествовать между параллельными реальностями, но каждый выбор в одном мире влияет на другой.',
+    director: 'Алекс Гарленд',
+    cast: ['Оскар Айзек', 'Домналл Глисон', 'Алисия Викандер'],
+    duration: 108,
+    country: 'Великобритания'
+  },
+  { 
+    id: 8, 
+    title: 'Охотник', 
+    year: 2023, 
+    rating: 8.3, 
+    genre: ['Боевик', 'Триллер'], 
+    poster: '🎯', 
+    isFavorite: false, 
+    views: 2,
+    description: 'Профессиональный снайпер получает задание, которое заставляет его переосмыслить свою жизнь и моральные принципы.',
+    director: 'Антуан Фукуа',
+    cast: ['Дензел Вашингтон', 'Марк Уолберг', 'Педро Паскаль'],
+    duration: 132,
+    country: 'США'
+  },
 ];
 
 const REVIEWS = [
@@ -41,6 +161,8 @@ function Index() {
   const [selectedGenre, setSelectedGenre] = useState('Все');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('home');
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const toggleFavorite = (id: number) => {
     setMovies(movies.map(m => m.id === id ? { ...m, isFavorite: !m.isFavorite } : m));
@@ -56,8 +178,16 @@ function Index() {
   const recommendedMovies = [...movies].sort((a, b) => b.views - a.views).slice(0, 4);
   const trendingMovies = [...movies].sort((a, b) => b.rating - a.rating).slice(0, 6);
 
+  const openMovieDialog = (movie: Movie) => {
+    setSelectedMovie(movie);
+    setIsDialogOpen(true);
+  };
+
   const MovieCard = ({ movie }: { movie: Movie }) => (
-    <Card className="glass-card hover-glow group overflow-hidden cursor-pointer animate-scale-in">
+    <Card 
+      className="glass-card hover-glow group overflow-hidden cursor-pointer animate-scale-in"
+      onClick={() => openMovieDialog(movie)}
+    >
       <CardContent className="p-0">
         <div className="relative aspect-[2/3] bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
           <span className="text-8xl">{movie.poster}</span>
@@ -305,6 +435,161 @@ function Index() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="glass-card max-w-4xl max-h-[90vh] overflow-hidden p-0">
+          {selectedMovie && (
+            <ScrollArea className="h-full max-h-[90vh]">
+              <div className="relative">
+                <div className="relative h-64 bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
+                  <span className="text-9xl">{selectedMovie.poster}</span>
+                  <div className="absolute top-4 right-4">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="bg-background/80 backdrop-blur-sm hover:bg-background"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(selectedMovie.id);
+                      }}
+                    >
+                      <Icon 
+                        name="Heart" 
+                        className={selectedMovie.isFavorite ? "fill-red-500 text-red-500" : ""} 
+                        size={24} 
+                      />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="p-8">
+                  <DialogHeader className="mb-6">
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <DialogTitle className="text-4xl font-heading font-bold gradient-text">
+                        {selectedMovie.title}
+                      </DialogTitle>
+                      <Badge className="bg-primary/20 text-2xl px-4 py-2">
+                        ⭐ {selectedMovie.rating}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      <Badge variant="outline" className="text-sm">{selectedMovie.year}</Badge>
+                      {selectedMovie.duration && (
+                        <Badge variant="outline" className="text-sm">
+                          <Icon name="Clock" size={14} className="mr-1" />
+                          {selectedMovie.duration} мин
+                        </Badge>
+                      )}
+                      {selectedMovie.country && (
+                        <Badge variant="outline" className="text-sm">
+                          <Icon name="MapPin" size={14} className="mr-1" />
+                          {selectedMovie.country}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMovie.genre.map(g => (
+                        <Badge key={g} className="bg-primary/10 text-primary-foreground">{g}</Badge>
+                      ))}
+                    </div>
+                  </DialogHeader>
+
+                  <div className="space-y-6">
+                    {selectedMovie.description && (
+                      <div>
+                        <h3 className="font-heading font-semibold text-xl mb-3 flex items-center gap-2">
+                          <Icon name="FileText" size={20} className="text-primary" />
+                          Описание
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed">
+                          {selectedMovie.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {selectedMovie.director && (
+                      <div>
+                        <h3 className="font-heading font-semibold text-xl mb-3 flex items-center gap-2">
+                          <Icon name="Clapperboard" size={20} className="text-primary" />
+                          Режиссёр
+                        </h3>
+                        <p className="text-foreground">{selectedMovie.director}</p>
+                      </div>
+                    )}
+
+                    {selectedMovie.cast && selectedMovie.cast.length > 0 && (
+                      <div>
+                        <h3 className="font-heading font-semibold text-xl mb-3 flex items-center gap-2">
+                          <Icon name="Users" size={20} className="text-primary" />
+                          В главных ролях
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedMovie.cast.map((actor, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-sm">
+                              {actor}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-6 border-t border-border">
+                      <div className="flex flex-wrap gap-3">
+                        <Button 
+                          size="lg" 
+                          className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                        >
+                          <Icon name="Play" className="mr-2" size={20} />
+                          Смотреть
+                        </Button>
+                        <Button 
+                          size="lg" 
+                          variant="outline"
+                          onClick={() => toggleFavorite(selectedMovie.id)}
+                        >
+                          <Icon 
+                            name="Heart" 
+                            className={selectedMovie.isFavorite ? "fill-red-500 text-red-500 mr-2" : "mr-2"} 
+                            size={20} 
+                          />
+                          {selectedMovie.isFavorite ? 'В избранном' : 'В избранное'}
+                        </Button>
+                        <Button size="lg" variant="outline">
+                          <Icon name="Share2" className="mr-2" size={20} />
+                          Поделиться
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Card className="glass-card mt-6">
+                      <CardContent className="p-6">
+                        <h3 className="font-heading font-semibold text-lg mb-4">Рецензии зрителей</h3>
+                        <div className="space-y-4">
+                          {REVIEWS.filter(r => r.movieId === selectedMovie.id).map(review => (
+                            <div key={review.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium">{review.author}</span>
+                                <Badge variant="secondary">⭐ {review.rating}/10</Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-1">{review.date}</p>
+                              <p className="text-foreground">{review.text}</p>
+                            </div>
+                          ))}
+                          {REVIEWS.filter(r => r.movieId === selectedMovie.id).length === 0 && (
+                            <p className="text-muted-foreground text-center py-4">
+                              Пока нет рецензий на этот фильм
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
